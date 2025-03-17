@@ -13,18 +13,19 @@ namespace PseudoRMI_ChatClient
             // Communication method
             BasicHttpBinding httpBinding = new BasicHttpBinding();
             // Defining address
-            //System.ServiceModel.EndpointAddress httpEndpoint = new System.ServiceModel.EndpointAddress("http://192.168.50.183:8080/ChatService");
-            System.ServiceModel.EndpointAddress httpEndpoint = new System.ServiceModel.EndpointAddress("http://localhost:8080/ChatService");
+            System.ServiceModel.EndpointAddress httpEndpoint = new System.ServiceModel.EndpointAddress("http://192.168.50.183:8080/ChatService");
+            //System.ServiceModel.EndpointAddress httpEndpoint = new System.ServiceModel.EndpointAddress("http://localhost:8080/ChatService");
             // Dynamically creating channels that implement interface
             ChannelFactory<IChatService> myChannelFactory = new ChannelFactory<IChatService>(httpBinding, httpEndpoint);
 
-            IChatService server = myChannelFactory.CreateChannel();
+            IChatService wcfClient1 = myChannelFactory.CreateChannel();
 
             try
             {
                 Console.WriteLine("Enter Your name and press Enter:");
                 string name = Console.ReadLine().Trim();
-                server.SetClient(name);
+                wcfClient1.SetName(name);
+                //wcfClient1.SetClient(wcfClient1);
 
                 Console.WriteLine("[System] User connected to chat server.");
                 string msg;
@@ -32,13 +33,14 @@ namespace PseudoRMI_ChatClient
                 {
                     try
                     {
+                        Console.WriteLine("Enter message: ");
                         msg = Console.ReadLine().Trim();
                         msg = "[" + name + "] " + msg;
-                        server.SendMessage(msg);
+                        wcfClient1.SendMessage(msg);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine("[System] Client failed: " + ex.Message);
+                        Console.WriteLine("[System] Message failed: " + ex.Message);
                     }
                 }
             }
