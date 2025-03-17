@@ -7,22 +7,13 @@ using System.Threading.Tasks;
 
 namespace PseudoRMI_ChatClient
 {
-    [ServiceContract(CallbackContract = typeof(IChatCallback))]
+    [ServiceContract]
     public interface IChatService
     {
         [OperationContract]
         void SendMessage(string message);
 
         [OperationContract]
-        void Subscribe();
-
-        [OperationContract]
-        void Unsubscribe();
-    }
-
-    public interface IChatCallback
-    {
-        [OperationContract]
-        void ReceiveMessage(string message);
+        void SetClient(string clientName);
     }
 }

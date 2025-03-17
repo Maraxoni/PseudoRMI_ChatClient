@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Hosting.Server;
+using System;
 using System.ServiceModel;
 using System.ServiceModel.Channels;
+using System.Xml.Linq;
 
 namespace PseudoRMI_ChatClient
 {
@@ -11,39 +13,43 @@ namespace PseudoRMI_ChatClient
             // Communication method
             BasicHttpBinding httpBinding = new BasicHttpBinding();
             // Defining address
-            //System.ServiceModel.EndpointAddress httpEndpoint = new System.ServiceModel.EndpointAddress("http://192.168.50.183:8080/DatabaseService");
-            System.ServiceModel.EndpointAddress httpEndpoint = new System.ServiceModel.EndpointAddress("http://localhost:8080/DatabaseService");
+            //System.ServiceModel.EndpointAddress httpEndpoint = new System.ServiceModel.EndpointAddress("http://192.168.50.183:8080/ChatService");
+            System.ServiceModel.EndpointAddress httpEndpoint = new System.ServiceModel.EndpointAddress("http://localhost:8080/ChatService");
             // Dynamically creating channels that implement interface
             ChannelFactory<IChatService> myChannelFactory = new ChannelFactory<IChatService>(httpBinding, httpEndpoint);
 
-            IChatService wcfClient1 = myChannelFactory.CreateChannel();
+            IChatService server = myChannelFactory.CreateChannel();
 
-            while (true)
+            try
             {
-                Console.WriteLine("Enter product name, '1' to list all products or 'exit' to quit:");
-                string input = Console.ReadLine();
+                Console.WriteLine("Enter Your name and press Enter:");
+                string name = Console.ReadLine().Trim();
+                server.SetClient(name);
 
-                if (input.ToLower() == "exit")
-                    break;
-
-                try
+                Console.WriteLine("[System] User connected to chat server.");
+                string msg;
+                while (true)
                 {
-                    if (input.ToLower() == "1")
+                    try
                     {
-                        
+                        msg = Console.ReadLine().Trim();
+                        msg = "[" + name + "] " + msg;
+                        server.SendMessage(msg);
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        
+                        Console.WriteLine("[System] Client failed: " + ex.Message);
                     }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error: " + ex.Message);
                 }
             }
-
-            myChannelFactory.Close();
+            catch (Exception ex)
+            {
+                Console.WriteLine("[System] Client failed: " + ex.Message);
+            }
+            finally
+            {
+                myChannelFactory.Close();
+            }
         }
     }
 }
