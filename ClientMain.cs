@@ -1,56 +1,35 @@
-﻿using Microsoft.AspNetCore.Hosting.Server;
-using System;
-using System.ServiceModel;
-using System.ServiceModel.Channels;
-using System.Xml.Linq;
+﻿using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.SignalR.Client;
 
-namespace PseudoRMI_ChatClient
+namespace ChatClient
 {
-    class ChatClient
+    class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
-            // Communication method
-            BasicHttpBinding httpBinding = new BasicHttpBinding();
-            // Defining address
-            System.ServiceModel.EndpointAddress httpEndpoint = new System.ServiceModel.EndpointAddress("http://192.168.50.183:8080/ChatService");
-            //System.ServiceModel.EndpointAddress httpEndpoint = new System.ServiceModel.EndpointAddress("http://localhost:8080/ChatService");
-            // Dynamically creating channels that implement interface
-            ChannelFactory<IChatService> myChannelFactory = new ChannelFactory<IChatService>(httpBinding, httpEndpoint);
+            var connection = new HubConnectionBuilder()
+                .WithUrl("http://localhost:8080/chatHub")
+                .Build();
 
-            IChatService wcfClient1 = myChannelFactory.CreateChannel();
+            connection.On<string, string>("ReceiveMessage", (user, message) =>
+            {
+                Console.WriteLine($"[{user}]: {message}");
+            });
 
-            try
-            {
-                Console.WriteLine("Enter Your name and press Enter:");
-                string name = Console.ReadLine().Trim();
-                wcfClient1.SetName(name);
-                //wcfClient1.SetClient(wcfClient1);
+            await connection.StartAsync();
+            Console.WriteLine("Connected to server");
 
-                Console.WriteLine("[System] User connected to chat server.");
-                string msg;
-                while (true)
-                {
-                    try
-                    {
-                        Console.WriteLine("Enter message: ");
-                        msg = Console.ReadLine().Trim();
-                        msg = "[" + name + "] " + msg;
-                        wcfClient1.SendMessage(msg);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("[System] Message failed: " + ex.Message);
-                    }
-                }
-            }
-            catch (Exception ex)
+            Console.Write("Enter Username: ");
+            string user = Console.ReadLine();
+            Console.WriteLine($"User [{user}] logged.");
+            Console.WriteLine($"You can start messaging :)");
+
+            while (true)
             {
-                Console.WriteLine("[System] Client failed: " + ex.Message);
-            }
-            finally
-            {
-                myChannelFactory.Close();
+                string message = Console.ReadLine();
+
+                await connection.InvokeAsync("SendMessage", user, message);
             }
         }
     }
